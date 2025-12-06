@@ -240,14 +240,10 @@ bool iVega::X5000::allocateHWEngines(void *const self) {
     singleton().sdmaEngineConstructor(sdma0);
     singleton().sdma0EngineField(self) = sdma0;
 
-    if (singleton().vcnEngineConstructor != nullptr) {
-        [[clang::suppress]]
-        auto *const vcn0 = OSObject::operator new(0x400);    // TODO: Verify size!
-        singleton().vcnEngineConstructor(vcn0);
-        singleton().vcn0EngineField(self) = vcn0;
-    } else {
-        SYSLOG("X5000", "VCN engine constructor not found, skipping VCN allocation");
-    }
+    [[clang::suppress]]
+    auto *const vcn0 = OSObject::operator new(0x400);
+    singleton().vcnEngineConstructor(vcn0);
+    singleton().vcn0EngineField(self) = vcn0;
 
     return true;
 }
