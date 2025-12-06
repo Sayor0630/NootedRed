@@ -15,6 +15,7 @@ namespace iVega {
 
         ObjectField<void *> pm4EngineField {};
         ObjectField<void *> sdma0EngineField {};
+        ObjectField<void *> vcn0EngineField {};
         ObjectField<UInt32> displayPipeCountField {};
         ObjectField<UInt32> seCountField {};
         ObjectField<UInt32> shPerSEField {};
@@ -27,6 +28,7 @@ namespace iVega {
         ObjectField<Gfx9ChipSettings> chipSettingsField {};
         GenericConstructor_t pm4EngineConstructor {nullptr};
         GenericConstructor_t sdmaEngineConstructor {nullptr};
+        GenericConstructor_t vcnEngineConstructor {nullptr};
         mach_vm_address_t orgSetupAndInitializeHWCapabilities {0};
         mach_vm_address_t orgGFX9SetupAndInitializeHWCapabilities {0};
         mach_vm_address_t orgGetHWChannel {0};

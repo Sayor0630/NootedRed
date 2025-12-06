@@ -52,6 +52,7 @@ iVega::X5000::X5000() {
         case KernelVersion::Catalina: {
             this->pm4EngineField = 0x348;
             this->sdma0EngineField = 0x350;
+            this->vcn0EngineField = 0x388;
             this->displayPipeCountField = 0x2C;
             this->seCountField = 0x58;
             this->shPerSEField = 0x5C;
@@ -67,6 +68,7 @@ iVega::X5000::X5000() {
         case KernelVersion::Monterey: {
             this->pm4EngineField = 0x3B8;
             this->sdma0EngineField = 0x3C0;
+            this->vcn0EngineField = 0x3F8;
             this->displayPipeCountField = 0x2C;
             this->seCountField = 0x5C;
             this->shPerSEField = 0x64;
@@ -81,6 +83,7 @@ iVega::X5000::X5000() {
         default: {
             this->pm4EngineField = 0x3B8;
             this->sdma0EngineField = 0x3C0;
+            this->vcn0EngineField = 0x3F8;
             this->displayPipeCountField = 0x34;
             this->seCountField = 0x64;
             this->shPerSEField = 0x6C;
@@ -112,6 +115,7 @@ void iVega::X5000::processKext(KernelPatcher &patcher, const size_t id, const ma
             orgChannelTypes, kChannelTypesPattern},
         {"__ZN31AMDRadeonX5000_AMDGFX9PM4EngineC1Ev", this->pm4EngineConstructor},
         {"__ZN32AMDRadeonX5000_AMDGFX9SDMAEngineC1Ev", this->sdmaEngineConstructor},
+        {"__ZN31AMDRadeonX5000_AMDGFX9VCNEngineC1Ev", this->vcnEngineConstructor},
         {"__ZN26AMDRadeonX5000_AMDHardware14startHWEnginesEv", orgStartHWEngines},
     };
     PANIC_COND(!PenguinWizardry::PatternSolveRequest::solveAll(patcher, id, solveRequests, slide, size), "X5000",
@@ -236,7 +240,10 @@ bool iVega::X5000::allocateHWEngines(void *const self) {
     singleton().sdmaEngineConstructor(sdma0);
     singleton().sdma0EngineField(self) = sdma0;
 
-    // No VCN? :-(
+    [[clang::suppress]]
+    auto *const vcn0 = OSObject::operator new(0x400);
+    singleton().vcnEngineConstructor(vcn0);
+    singleton().vcn0EngineField(self) = vcn0;
 
     return true;
 }
@@ -247,7 +254,7 @@ void iVega::X5000::wrapSetupAndInitializeHWCapabilities(void *const self) {
     singleton().displayPipeCountField(self) = NRed::singleton().getAttributes().isRenoir() ? 6 : 4;
     singleton().hasUVD0Field(self) = false;
     singleton().hasVCEField(self) = false;
-    singleton().hasVCN0Field(self) = false;
+    singleton().hasVCN0Field(self) = true;
     singleton().hasSDMAPagingQueueField(self) = false;
 }
 

@@ -78,7 +78,9 @@ void NRed::hwLateInit() {
 
     PANIC_COND(!this->getVBIOS(), "NRed", "Failed to get VBIOS!");
 
-    this->vbiosData->appendByte(0, ATOMBIOS_IMAGE_SIZE - this->vbiosData->getLength());
+    if (this->vbiosData->getLength() < ATOMBIOS_IMAGE_SIZE) {
+        this->vbiosData->appendByte(0, ATOMBIOS_IMAGE_SIZE - this->vbiosData->getLength());
+    }
 
     this->iGPU->setProperty("ATY,bin_image", this->vbiosData);
 
@@ -362,7 +364,11 @@ bool NRed::getVBIOSFromVRAM() {
         return false;
     }
     this->vbiosData = OSData::withBytes(fb, size);
-    assert(this->vbiosData != nullptr);
+    if (this->vbiosData == nullptr) {
+        DBGLOG("NRed", "Failed to allocate memory for VBIOS data from VRAM");
+        OSSafeReleaseNULL(bar0);
+        return false;
+    }
     OSSafeReleaseNULL(bar0);
     return true;
 }
@@ -389,7 +395,13 @@ bool NRed::getVBIOSFromExpansionROM() {
 
     this->vbiosData = OSData::withBytes(reinterpret_cast<const void *>(expansionROM->getVirtualAddress()),
         static_cast<UInt32>(expansionROMLength));
-    assert(this->vbiosData != nullptr);
+    if (this->vbiosData == nullptr) {
+        DBGLOG("NRed", "Failed to allocate memory for VBIOS data");
+        expansionROM->release();
+        // Disable reading the expansion ROMs
+        this->iGPU->extendedConfigWrite32(kIOPCIConfigExpansionROMBase, expansionROMBase);
+        return false;
+    }
     expansionROM->release();
 
     // Disable reading the expansion ROMs
